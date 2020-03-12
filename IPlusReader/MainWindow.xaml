@@ -1,0 +1,197 @@
+﻿<Window x:Class="IPlusReader.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:IPlusReader"
+        xmlns:cmi="clr-namespace:IPlusReader.Model"
+        xmlns:sys="clr-namespace:System;assembly=mscorlib"
+        xmlns:sel="clr-namespace:IPlusReader.Selector"
+        xmlns:cv="clr-namespace:IPlusReader.Convert"
+        mc:Ignorable="d" Background="#FF1E1E1E"
+        Title="WebGrapplerViewer" Height="600" Width="800">
+
+    <Window.Resources>
+        <sel:ComicListViewTemplateSelector x:Key="ComicListViewTemplateSelector"/>
+        <sel:ComicTreeViewTemplateSelector x:Key="ComicTreeViewTemplateSelector"/>
+        <cv:TreeItemViewVisibilityConverter x:Key="TreeItemViewVisibilityConverter"/>
+        <cv:TreeViewExpandeButtonVisiableConvert x:Key="TreeViewExpandeButtonVisiableConvert"/>
+        <cv:TreeViewExpandedConvert x:Key="TreeViewExpandedConvert"/>
+        <cv:TreeViewExpandeMarginConvert x:Key="TreeViewExpandeMarginConvert"/>
+        <cv:SideBarHiddedConvert x:Key="SideBarHiddedConvert"/>
+
+        <Style x:Key="Empty_Button" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}">
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        
+        <HierarchicalDataTemplate x:Key="ComicLibTreeViewDataTemplate" DataType="{x:Type cmi:Comic}" ItemsSource="{Binding Subs}">
+            <Grid Margin="2,12" Background="Transparent" HorizontalAlignment="Stretch" >
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="64"/>
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+                <Image Height="64" Source="{Binding Cover}"/>
+                <TextBlock Grid.Column="1" Text="{Binding Name}" Foreground="White"
+                           VerticalAlignment="Center" Margin="2,0" FontSize="16" TextTrimming="CharacterEllipsis"/>
+            </Grid>
+        </HierarchicalDataTemplate>
+
+        <HierarchicalDataTemplate x:Key="ComicTreeViewDataTemplate" 
+                                  DataType="{x:Type cmi:ComicItem}">
+            <!--ItemsSource="{Binding Subs}"-->
+            <Border  Height="32">
+                <TextBlock Text="{Binding Name}" FontSize="14" VerticalAlignment="Center"
+                           Margin="2,4" TextTrimming="CharacterEllipsis"/>
+            </Border>
+            
+        </HierarchicalDataTemplate>
+
+        <HierarchicalDataTemplate x:Key="ComicItemTreeViewDataTemplate" DataType="{x:Type sys:String}">
+            
+        </HierarchicalDataTemplate>
+
+        <Style x:Key="T_V_C" TargetType="TreeViewItem">
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="ToolTip" Value="{Binding Name}"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="IsExpanded" Value="False"/>
+            <Setter Property="Margin" Value="2,4"/>
+            <Setter Property="Visibility" Value="{Binding Converter={StaticResource TreeItemViewVisibilityConverter}}"/>
+
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TreeViewItem">
+                        <StackPanel Orientation="Vertical">
+                            <Border Name="Main_Border">
+                                <Grid Name="Head_Grid" Margin="{Binding RelativeSource={RelativeSource Mode=TemplatedParent},Converter={StaticResource TreeViewExpandeMarginConvert}}">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition/>
+                                    </Grid.ColumnDefinitions>
+                                    <Expander VerticalAlignment="Center"
+                                              Visibility="{Binding Path=Items,RelativeSource={RelativeSource Mode=TemplatedParent},Converter={StaticResource TreeViewExpandeButtonVisiableConvert}}"
+                                        IsExpanded="{Binding IsExpanded,RelativeSource={RelativeSource Mode=TemplatedParent}}"/>
+                                    <ContentPresenter Grid.Column="1" ContentSource="Header"/>
+                                </Grid>
+                            </Border>
+                            <ItemsPresenter Visibility="{Binding IsExpanded,RelativeSource={RelativeSource Mode=TemplatedParent},Converter={StaticResource TreeViewExpandedConvert}}"/>
+                        </StackPanel>
+
+                        <ControlTemplate.Triggers>
+                            <Trigger SourceName="Main_Border" Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#FF007ACC" TargetName="Main_Border"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        
+    </Window.Resources>
+    
+    <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="200" Name="Side_column"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*" MinWidth="200"/>
+            </Grid.ColumnDefinitions>
+
+        <Grid Name="Side_Bar">
+            
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+
+            <StackPanel Orientation="{Binding ElementName=Side_Toggle,Path=IsChecked,Converter={StaticResource SideBarHiddedConvert}}" 
+                        HorizontalAlignment="Right">
+                <ToggleButton Name="Side_Toggle"
+                    Height="32" Width="32" 
+                    HorizontalAlignment="Right" Background="Transparent" BorderThickness="0"
+                        HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Click="Button_Click">
+                    
+                    <ToggleButton.Template>
+                        <ControlTemplate TargetType="ToggleButton">
+                            
+                            
+                            <Border Background="{TemplateBinding Background}">
+                                <TextBlock Name="T_Icon" Text="◁" Foreground="White" 
+                                           TextAlignment="Center" VerticalAlignment="Center"
+                                           RenderTransformOrigin="0.5,0.5"/>
+                            </Border>
+
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsChecked" Value="True">
+                                    <Setter TargetName="T_Icon" Property="RenderTransform">
+                                        <Setter.Value>
+                                            <RotateTransform Angle="180"/>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Trigger>
+                                <Trigger Property="IsMouseOver" Value="true">
+                                    <Setter Property="Cursor" Value="Hand"/>
+                                    <Setter  TargetName="T_Icon" Property="Foreground" Value="#FF007ACC"/>
+                                    <Setter Property="Background" Value="#f0232323"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </ToggleButton.Template>
+                </ToggleButton>
+                
+                <Button Height="32" Width="32" Style="{StaticResource Empty_Button}" Foreground="White" BorderThickness="0" Click="Button_Click_1">
+
+                    <Grid Height="32" Width="32" VerticalAlignment="Top" Margin="0,-16,0,0">
+                        <TextBlock Text="⌂" FontSize="14" TextAlignment="Center" VerticalAlignment="Bottom"/>
+                        <TextBlock Text="∎" FontSize="10" TextAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,1"/>
+                    </Grid>
+
+                </Button>
+            </StackPanel>
+            
+            <TreeView x:Name="Tree_View"
+                      Grid.Row="1"
+                      Background="Transparent"
+                      BorderThickness="0"
+                      ItemsSource="{Binding }" 
+                      
+                      HorizontalAlignment="Stretch"
+                      VerticalAlignment="Stretch"
+                      
+                      ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                      ScrollViewer.VerticalScrollBarVisibility="Auto"
+                  
+                      SelectedItemChanged="Side_Bar_SelectedItemChanged"
+                      
+                      VirtualizingPanel.ScrollUnit="Item"
+                      VirtualizingPanel.IsVirtualizing="True"
+                      VirtualizingPanel.VirtualizationMode="Recycling"
+                 
+                      ItemTemplateSelector="{StaticResource ComicTreeViewTemplateSelector}"
+                      ItemContainerStyle="{StaticResource T_V_C}"
+                      >
+
+            </TreeView>            
+        </Grid>
+
+
+            <GridSplitter Name="Grid_Split" Background="#FF232323" Grid.Column="1" Width="6" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"></GridSplitter>
+
+            <ContentControl Grid.Column="2" Background="Transparent" BorderThickness="0">
+                <Frame Name="Main_Panel" Background="Transparent" BorderThickness="0" Margin="0" NavigationUIVisibility="Hidden"/>
+            </ContentControl>        
+        </Grid>
+        
+</Window>
