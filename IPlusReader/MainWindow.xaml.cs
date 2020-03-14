@@ -70,7 +70,8 @@ namespace IPlusReader
                 {
                     File.Create("./LibViewSetting.txt");
                     MessageBox.Show("请先在 LibViewSetting.txt 文件中添加库路径。");
-                    Close();
+                    this.Dispatcher.BeginInvoke(new Action(() => 
+                    { System.Diagnostics.Process.Start(System.IO.Path.GetFullPath("./LibViewSetting.txt")); Close(); }));
                 }
                 
             }).Start();
