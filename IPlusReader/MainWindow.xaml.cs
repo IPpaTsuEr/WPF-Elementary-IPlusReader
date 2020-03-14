@@ -1,4 +1,5 @@
-﻿using IPlusReader.Helper;
+﻿using ExToolKit;
+using IPlusReader.Helper;
 using IPlusReader.Model;
 using System;
 using System.Collections.Generic;
@@ -24,13 +25,14 @@ namespace IPlusReader
     /// <summary>
     /// MainWindow.xaml 的交互逻辑
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class MainWindow : ExWindow
     {
         public ObservableCollection<Comic> ComicList { get; set; } = new ObservableCollection<Comic>();
         private LibPage lp;
         private InfoPage ip;
         private MovieInfoPage mip;
         private ViewPage vp;
+        private Object Locker = new Object();
 
         public void LoadComicLib(string lib)
         {
@@ -42,30 +44,37 @@ namespace IPlusReader
                 }
             }
         }
-        
+
         public MainWindow()
         {
+            BindingOperations.EnableCollectionSynchronization(ComicList, Locker);
             this.DataContext = ComicList;
             InitializeComponent();
 
-            if (File.Exists("./LibViewSetting.txt"))
+            new Thread(() =>
             {
-                var _list = File.ReadAllLines("./LibViewSetting.txt");
-                foreach (var item in _list)
+                if (File.Exists("./LibViewSetting.txt"))
                 {
-                    if(Directory.Exists(item))
-                        LoadComicLib(item);
-                }
-            }
-            else
-            {
-                File.Create("./LibViewSetting.txt");
-                MessageBox.Show("请先在 LibViewSetting.txt 文件中添加库路径。");
-                Close();
-            }
+                    var _list = File.ReadAllLines("./LibViewSetting.txt");
+                    lock (Locker)
+                    {
+                        foreach (var item in _list)
+                        {
+                            if (Directory.Exists(item))
+                                LoadComicLib(item);
+                        }
+                    }
 
+                }
+                else
+                {
+                    File.Create("./LibViewSetting.txt");
+                    MessageBox.Show("请先在 LibViewSetting.txt 文件中添加库路径。");
+                    Close();
+                }
+                
+            }).Start();
             GotoLib();
-            
         }
 
         private void GotoLib()

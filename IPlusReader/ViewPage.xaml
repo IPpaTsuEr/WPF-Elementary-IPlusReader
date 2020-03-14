@@ -13,13 +13,12 @@
       Title="ViewPage">
     <Page.Resources>
         <sl:ViewPageTemplateSelector x:Key="ViewPageTemplateSelector"/>
-        <cv:DebugConvert x:Key="DebugConvert"/>
-        <cv:GifMemoryReleaseConvert x:Key="GifMemoryReleaseConvert"/>
         
+
         <DataTemplate x:Key="V_I_DataTemplate" DataType="{x:Type sys:String}">
             <Image MaxWidth="800" Stretch="UniformToFill">
                 <Image.Source>
-                    <BitmapImage UriSource="{Binding IsAsync=True,Converter={StaticResource DebugConvert}}" CreateOptions="DelayCreation" DecodePixelWidth="800" CacheOption="OnDemand"/>
+                    <BitmapImage UriSource="{Binding IsAsync=True}" CreateOptions="DelayCreation" DecodePixelWidth="800" CacheOption="OnDemand"/>
                 </Image.Source>
             </Image>
         </DataTemplate>
