@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -11,19 +12,10 @@ namespace IPlusReader.Helper
 {
     class ComicHelper
     {
-        public static int GetValue(string name)
-        {
-            if(name.IndexOf(" ") >= 1)
-            {
-                name = name.Split(' ')[0];
-            }
-            StringBuilder st = new StringBuilder(10);
-            foreach (var item in name)
-            {
-                if (item >= '0' && item <= '9') st.Append(item);
-            }
-            return st.Length == 0 ? -1 : System.Convert.ToInt32(st.ToString());
-        }
+
+        [DllImport("shlwapi.dll", CharSet = CharSet.Unicode)]
+        public static extern int StrCmpLogicalW(string psz1, string psz2);
+
 
         public static bool Load(string path, ICollection<Comic> list)
         {
@@ -38,23 +30,35 @@ namespace IPlusReader.Helper
                 try { _new.Info = DF.GetFiles("info.txt")[0].FullName; } catch (Exception) { }
                 try { _new.Synopsis = DF.GetFiles("synopsis.txt")[0].FullName; } catch (Exception) { }
                 _new.Subs = new ObservableCollection<ComicItem>();
-
-                foreach (var item in DF.GetDirectories().OrderBy(m => GetValue(m.Name)))
+                var _DFD = DF.GetDirectories().ToList();
+                _DFD.Sort((a,b)=>
+                {
+                    if (string.IsNullOrEmpty(a.Name) && string.IsNullOrEmpty(b.Name)) return 0;
+                    if (string.IsNullOrEmpty(a.Name)) return -1;
+                    if (string.IsNullOrEmpty(b.Name)) return 1;
+                    return StrCmpLogicalW(a.Name, b.Name);
+                });
+                foreach (var item in _DFD)
                 {
                     var _newsub = new ComicItem();
                     _newsub.Name = item.Name;
 
                     _newsub.Subs = new ObservableCollection<string>();
-                    foreach (var sub in item.GetFiles().OrderBy(f => GetValue(f.Name)))
+                    var _FL = item.GetFiles().ToList();
+                    _FL.Sort((a, b) => {
+                        return StrCmpLogicalW(a.Name, b.Name);
+                      });
+                    foreach (var sub in _FL)
                     {
-                        _newsub.Subs.Add(sub.FullName);
+                        if("|.jpg|.png|.bmp|.gif|.jpeg".IndexOf(sub.Extension)>0)
+                            _newsub.Subs.Add(sub.FullName);
                     }
                     _new.Subs.Add(_newsub);
                 }
 
                 if (_new.Subs.Count == 0) _new.IsComic = false;
                 else _new.IsComic = true;
-
+                
                 list.Add(_new);
                 return true;
             }
