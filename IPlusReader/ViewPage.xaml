@@ -5,16 +5,34 @@
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:local="clr-namespace:IPlusReader"
       mc:Ignorable="d" 
+      xmlns:ex="clr-namespace:ExToolKit;assembly=ExToolKit"
       xmlns:sys="clr-namespace:System;assembly=mscorlib"
+      xmlns:sl="clr-namespace:IPlusReader.Selector"
+      xmlns:cv="clr-namespace:IPlusReader.Convert"
       d:DesignHeight="450" d:DesignWidth="800" Background="Transparent"
       Title="ViewPage">
     <Page.Resources>
+        <sl:ViewPageTemplateSelector x:Key="ViewPageTemplateSelector"/>
+        <cv:DebugConvert x:Key="DebugConvert"/>
+        <cv:GifMemoryReleaseConvert x:Key="GifMemoryReleaseConvert"/>
+        
         <DataTemplate x:Key="V_I_DataTemplate" DataType="{x:Type sys:String}">
-            <Image MaxWidth="1200" Stretch="UniformToFill">
+            <Image MaxWidth="800" Stretch="UniformToFill">
                 <Image.Source>
-                    <BitmapImage UriSource="{Binding }" DecodePixelWidth="1200"/>
+                    <BitmapImage UriSource="{Binding IsAsync=True,Converter={StaticResource DebugConvert}}" CreateOptions="DelayCreation" DecodePixelWidth="800" CacheOption="OnDemand"/>
                 </Image.Source>
             </Image>
+        </DataTemplate>
+        
+        <DataTemplate x:Key="V_I_GifDataTemplate" DataType="{x:Type sys:String}">
+            <ex:GIFImage MaxWidth="800" Name="Gif_Image"
+                         GIFData="{Binding IsAsync=True}" 
+                         Play="True" 
+                         Stretch="UniformToFill"
+                         Margin="4"
+                         Visibility="{Binding Path=Visibility,RelativeSource={RelativeSource Mode=TemplatedParent}}"
+                        >
+            </ex:GIFImage>
         </DataTemplate>
 
         <Style x:Key="V_I_ContanerStyle" TargetType="ListViewItem">
@@ -32,27 +50,37 @@
         </Style>
     </Page.Resources>
     <Grid>
+        <!--ItemTemplate="{StaticResource V_I_DataTemplate}"-->
+        <!--                  --> 
         <ListView Name="View_List"
                   Background="Transparent"
                   BorderThickness="0"
                   ItemsSource="{Binding }"
-                  ItemTemplate="{StaticResource V_I_DataTemplate}"
+                  SelectionMode="Single"
+                  
+                  ItemTemplateSelector="{StaticResource ViewPageTemplateSelector}"
                   ItemContainerStyle="{StaticResource V_I_ContanerStyle}"
                   ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                   ScrollViewer.VerticalScrollBarVisibility="Auto"
                   
-                  ScrollViewer.CanContentScroll="False"
+                  SizeChanged="ListView_SizeChanged"
+                  ScrollViewer.ScrollChanged="ListView_ScrollChanged"
+                  
+                  ScrollViewer.CanContentScroll="True"
                   
                   VirtualizingPanel.IsVirtualizing="True" 
-                  VirtualizingPanel.VirtualizationMode="Recycling" 
+                  VirtualizingPanel.VirtualizationMode="Standard" 
                   VirtualizingPanel.ScrollUnit="Pixel" 
                   VirtualizingPanel.CacheLength="2" 
                   VirtualizingPanel.CacheLengthUnit="Item"
-                  
-                  SizeChanged="ListView_SizeChanged"
-                  ScrollViewer.ScrollChanged="ListView_ScrollChanged" 
+                  VirtualizingPanel.IsContainerVirtualizable="True"
+                  VirtualizingStackPanel.CleanUpVirtualizedItem="View_List_CleanUpVirtualizedItem"
                   >
-            
+            <ListView.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <VirtualizingStackPanel />
+                </ItemsPanelTemplate>
+            </ListView.ItemsPanel>
         </ListView>
     </Grid>
 </Page>
